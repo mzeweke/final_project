@@ -26,11 +26,11 @@ def update_home_away(location, result, home_rec, away_rec):
             away_rec[2] += 1
 
 
-def get_mlb_home_away(year):
+def get_MLB_data(year):
     ''' returns a tuple of team name, home record, away record for MLB teams in the
     passed year '''
     teams = mlbteams(year)
-    team_stats = {}
+    team_records = []
     for team in teams:
         name = team.name
     # get home stats
@@ -47,18 +47,18 @@ def get_mlb_home_away(year):
         away_rec = [int(away_wins), int(away_losses)]
     # organize in a dict
         dict = {}
+        dict["name"] = team.name
         dict["home"] = home_rec
         dict["away"] = away_rec
-        team_stats[team.name] = dict
-    items = team_stats.items()
-    return sorted(items)
+        team_records.append(dict)
+    return team_records
 
 
-def get_nfl_home_away(year):
+def get_NFL_data(year):
     ''' returns a tuple of team name, home record, away record for MLB teams in the
     passed year '''
     teams = nflteams(year)
-    team_records = {}
+    team_records = []
     for team in teams:
     # look at all registered teams in the NFL
         schedule = team.schedule
@@ -70,16 +70,20 @@ def get_nfl_home_away(year):
                 update_home_away(game.location, game.result, home_record, away_record)
     # organize in a dict    
         dict = {}
+        dict["name"] = team.name
         dict["home"] = home_record
         dict["away"] = away_record
-        team_records[team.name] = dict
-    items = team_records.items()
-    return sorted(items)
+        team_records.append(dict)
+    return team_records
 
 
-def get_NBA_data(year):
+def get_NBA_data(year, cur, conn):
+    cur.execute('''CREATE TABLE IF NOT EXISTS NBA (name TEXT PRIMARY KEY, home_wins INTEGER, home_losses INTEGER, away_wins INTEGER, away_losses INTEGER)''')
+    db_conn = sqlite3.connect("sports_records.db")
+    db_cur = db_conn.cursor()
+
     teams = NBAteams(year)
-    team_records = {}
+    team_records = []
     for team in teams:
     # look at all registered teams in NBA
         schedule = team.schedule
@@ -90,12 +94,31 @@ def get_NBA_data(year):
             if game.playoffs == False:
                 update_home_away(game.location, game.result, home_record, away_record)
     # organize in a dict
+        cur.execute("INSERT OR IGNORE INTO NBA (name, home_wins, home_losses, away_wins, away_losses) VALUES (?,?,?,?,?)",(team.name, home_record[0], home_record[1], away_record[0], away_record[1]))
+
+    conn.commit()
+    return team_records
+
+
+def get_NHL_data(year):
+    teams = NHLteams(year)
+    team_records = []
+    for team in teams:
+    # look at all registered teams in NBA
+        schedule = team.schedule
+        home_record = [0,0,0]
+        away_record = [0,0,0]
+    # look at at results for all games in that team's schedule
+        for game in schedule:
+            if game.game <= 82:
+                update_home_away(game.location, game.result, home_record, away_record)
+    # organize in a dict
         dict = {}
-        dict["home"] = home_record[:2]
-        dict["away"] = away_record[:2]
-        team_records[team.name] = dict
-    items = team_records.items()
-    return sorted(items)
+        dict["name"] = team.name
+        dict["home"] = home_record
+        dict["away"] = away_record
+        team_records.append(dict)
+    return team_records
 
 
 def setUpDatabase(db_name):
@@ -106,5 +129,8 @@ def setUpDatabase(db_name):
 
 
 if __name__ == '__main__':
-    print(get_NBA_data(2018))
-    
+    setUpDatabase('sports_records')
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+'sports_records.db')
+    cur = conn.cursor()
+    print(get_NHL_data(2019))
