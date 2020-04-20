@@ -213,13 +213,13 @@ if __name__ == '__main__':
    
     for i in range(1,20):
         year = 2000+i
-        print("gettting NFL data...")
+
         get_nfl(year, cur, conn)
-        print("gettting MLB data...")
+
         get_mlb(year, cur, conn)
-        print("gettting NBA data...")
+
         get_nba(year, cur, conn)
-        print("gettting NHL data...")
+
         get_nhl(year, cur, conn)
     
 
