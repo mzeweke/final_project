@@ -9,136 +9,152 @@ import re
 import os
 
 def get_leage_records_for_year(year, league, cur, conn):
+    '''Takes a year, a league (MLB, NFL, NBA, NHL), a cursor object and a connect object as input.
+    Selects relevant data from the database, and from it, calculates percent home and away wins
+    and total percent wins.  Stores this data in a list of dictionaries.  Returns this list.'''
+
     cur.execute('SELECT city, mascot, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties FROM sports_records WHERE year = {}'.format(year))
     tuples = cur.fetchall()
-    league_records = []
+    dict_list = []
     for tuple in tuples:
         if tuple[2] == league:
+            league_records = {}
             tup = [tuple[0], tuple[1], [tuple[3], tuple[4], tuple[5]], [tuple[6], tuple[7], tuple[8]]]
-            league_records.append(tup)
-    return league_records
+            league_records["name"] = tup[0] + " " + tup[1]
 
-def calculate_z_score(league_records, z_star):
-    '''
-    Calculates the z-score and whether we reject the null hypothesis at the alpha significance
-    level... in English: calculates whether each team has a Home Field Advantage
-    '''
-    list = []
-    for record in league_records:
-        dict = {}
-        dict["team_name"] = record[0] + " " + record[1]
-        home_n = record[2][0] + record[2][1] + record[2][2]
-        away_n = record[3][0] + record[3][1] + record[3][2]
-        home_p = (record[2][0]/home_n)
-        away_p = (record[3][0]/away_n)
-        p_hat = (record[2][0]+record[3][0])/(home_n+away_n)
-        if p_hat != 0:
-            z = (home_p-away_p)/math.sqrt( (p_hat * (1-p_hat)) * ((1/home_n)+(1/away_n)) )
-        else:
-            z = 0
-        dict['z'] = z
-        dict['home_p'] = home_p
-        dict['away_p'] = away_p
-        if z > z_star:
-            dict['HFA'] = True
-        else:
-            dict['HFA'] = False
-        list.append(dict)
-    return list
+            n_home = tup[2][0]+tup[2][1]+tup[2][2]
+            league_records["n_home"] = n_home 
 
-def conclusions(stats_output):
-    count = 0
-    for entry in stats_output:
-        if entry['HFA'] == True:
-            count = count + 1
-    return count/len(stats_output)
+            n_away = tup[3][0]+tup[3][1]+tup[3][2]
+            league_records["n_away"] = n_away
 
-def hypothesis_test(year, league, cur, conn, alpha):
-    print("  " + league + "...")
+            p_home = tup[2][0]/n_home
+            league_records["p_home"] = p_home
+
+            p_away = tup[3][0]/n_away
+            league_records["p_away"] = p_away
+
+            p_hat = (tup[2][0]+tup[3][0])/(n_home+n_away)
+            league_records["p_hat"] = p_hat
+            dict_list.append(league_records)
+    return dict_list
+
+def calculate_z_score(record):
+    '''Takes a dictionary 'record' as input.  Uses a formula to calculate the z-score for the data
+    in the dictionary.  Adds the z-score to the dictionary.  Does not return.'''
+
+    if record["p_hat"] != 0:
+        z = (record["p_home"]-record["p_away"])/math.sqrt( (record["p_hat"] * (1-record["p_hat"])) * ((1/record["n_home"])+(1/record["n_away"])) )
+    else:
+        z = 0
+    record["z"] = z
+
+def run_hypothesis_test(record, alpha):
+    '''Takes a dictionary 'record' and alpha value as input.  Calculates whether or not the data from
+    the dictionary is statistically significant with regard to alpha, in other words, is there a home
+    field advantage?  Adds a bool to the dictionary.  Does not return.'''
+
     if alpha == 0.10:
         z_star = 1.28
     if alpha == 0.05:
         z_star = 1.28
     if alpha == 0.01:
         z_star = 2.33
-    records = get_leage_records_for_year(year, league, cur, conn)
-    stats_output = calculate_z_score(records, z_star)
-    conclusion = conclusions(stats_output)*100
-    print("    At an alpha = " + str(alpha) +  " significance level, the data suggests that " + str(conclusion) + "%")
-    print("    of teams in the " + league +  " seemed to have a home-field advantage in " + str(year) + ".\n")
-    return conclusion
+    z = record["z"]
+    if z > z_star:   
+        record['HFA'] = True
+    else:
+        record['HFA'] = False
 
-def avg(list):
-    sum = 0
-    for i in list:
-        sum = sum + i
-    return sum/len(list)
+def conclusions(stats_output):
+    '''Takes a list of dictionaries as input.  Counts the number of statistically significant results
+    in the dictionary.  Returns the proportion of statistically significant results.'''
 
-def run_tests_on_all_data(years, leagues, cur, conn, alpha):
-    MLB = [];    NFL = [];    NBA = [];    NHL = []
+    count = 0
+    for entry in stats_output:
+        if entry['HFA'] == True:
+            count = count + 1
+    return count/len(stats_output)
+
+def abbreviate(name):
+    '''Takes a name as input.  Calculates an abbreviation for the name.  Returns this abbreviation.'''
+    abbrev = ""
+    for char in name:
+        if char.isupper():
+            abbrev = abbrev + char
+    if abbrev == "P":
+        abbrev = abbrev + str(76)
+    return abbrev
+
+def run_tests_on_all_data(years, leagues, cur, conn, alpha, filename):
+    '''Takes a list of years, a list of leagues, a cursor object, a connect object, an alpha value, and
+    a filename as input.  Runs hypothesis tests on all of the data and outputs the results to filename.
+    Does not return.'''
+
+    path = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    file = open(path + filename, 'w')
+    file.write("Two Proportion Hypothesis Test Results:\n\n")
+    lines = []
     for year in years:
-        print("Calculating data from " + str(year) + "...")
         for league in leagues:
-            conclusion = hypothesis_test(year, league, cur, conn, alpha)
-            if league == "MLB":
-                MLB.append(conclusion)
-            if league == "NFL":
-                NFL.append(conclusion)
-            if league == "NBA":
-                NBA.append(conclusion)
-            if league == "NHL":
-                NHL.append(conclusion)
-    avgMLB = avg(MLB); avgNFL = avg(NFL); avgNBA = avg(NBA); avgNHL = avg(NHL)
-    print("Calculating the average home-field advantages...")
-    print("  MLB...   " + str(avgMLB) + "%")
-    print("  NFL...   " + str(avgNFL) + "%")
-    print("  NBA...   " + str(avgNBA) + "%")
-    print("  NHL...   " + str(avgNHL) + "%\n")
+            season_records = get_leage_records_for_year(year, league, cur, conn)
+            for record in season_records:
+                calculate_z_score(record)
+                run_hypothesis_test(record, alpha)
+            result = conclusions(season_records)*100
+            file.write('  ' + league + ' ' +str(year) + "...\n")
+            file.write("    At an alpha = " + str(alpha) +  " significance level, the data suggests that " + str(result) + "%\n")
+            file.write("    of teams in the " + league +  " seemed to have a home-field advantage in " + str(year) + ".\n\n")
+    file.close()
 
-def get_box_plot_data(year, leagues, cur, conn, z_star):
+
+def get_box_plot_data(year, leagues, cur, conn):
+    '''Takes a year, a league, a cursor object, and a connect object.  Loops through the data and returns
+    a list of parallel lists of data to be used in the box_plot function.'''
+
     data_list = []
     for league in leagues:
         league_records = get_leage_records_for_year(year, league, cur, conn)
-        list = calculate_z_score(league_records, z_star)
-        home_p_list = []
-        away_p_list = []
-        for data in list:
-            home_p_list.append(data["home_p"])
-            away_p_list.append(data["away_p"])
-        data = [home_p_list, away_p_list]
+        for record in league_records:
+            calculate_z_score(record)
+        p_homes = []
+        p_aways = []
+        for data in league_records:
+            p_homes.append(data["p_home"])
+            p_aways.append(data["p_away"])
+        data = [p_homes, p_aways]
         data_list.append(data)
     return data_list
 
-def get_line_plot_data(year, leagues, cur, conn, z_star):
+def get_line_plot_data(year, leagues, cur, conn):
+    '''Takes a year, a league, a cursor object, and a connect object.  Loops through the data and returns
+    a list of parallel lists of data to be used in the line_plot function.'''
+
     data_list = []
     for league in leagues:
         league_records = get_leage_records_for_year(year, league, cur, conn)
-        list = calculate_z_score(league_records, z_star)
+        for record in league_records:
+            calculate_z_score(record)
         teams = []
-        home_p_list = []
-        away_p_list = []
+        p_homes = []
+        p_aways = []
         fifty = []
         i = 1
         num = []
-        for rec in list:
-            name = rec["team_name"]
-            abbrev = ""
-            for char in name:
-                if char.isupper():
-                    abbrev = abbrev + char
-            if abbrev == "P":
-                abbrev = abbrev + str(76)
-            teams.append(abbrev)
-            home_p_list.append(rec["home_p"])
-            away_p_list.append(rec['away_p'])
+        for data in league_records:
+            teams.append(abbreviate(data['name']))
+            p_homes.append(data["p_home"])
+            p_aways.append(data['p_away'])
             fifty.append(.5)
             num.append(i); i = i + 1
-        data = [teams, home_p_list, fifty, num, away_p_list]
-        print(data[0])
+        data = [teams, p_homes, fifty, num, p_aways]
         data_list.append(data)
     return data_list
 
 def line_plot(data_list, year):
+    '''Takes a list of parallel lists and a year.  Generates a line plot of the data.  Does not
+    return.'''
+
     fig = plt.figure()
     leagues = ["MLB", "NFL", "NBA", "NHL"]
     fig_num = 1
@@ -157,6 +173,8 @@ def line_plot(data_list, year):
     plt.show()
 
 def box_plot(data_list, year):
+    '''Takes a list of parallel lists and a year.  Generates a box plot of the data.  Does not return.'''
+
     fig = plt.figure()
     leagues = ["MLB", "NFL", "NBA", "NHL"]
     fig_num = 1
@@ -192,10 +210,10 @@ if __name__ == '__main__':
     cur = conn.cursor()
     years = [2017, 2018, 2019]; leagues = ["MLB", "NFL", "NBA", "NHL"]
 
-    run_tests_on_all_data(years, leagues, cur, conn, 0.10)
+    run_tests_on_all_data(years, leagues, cur, conn, 0.10, "stats_calcs.txt")
 
-    #box_data2019 = get_box_plot_data(2019, leagues, cur, conn, 1.28)
-    #box_plot(box_data2019, 2019)
+    box_data2019 = get_box_plot_data(2019, leagues, cur, conn)
+    box_plot(box_data2019, 2019)
 
-    line_data2019 = get_line_plot_data(2019, leagues, cur, conn, 1.28)
+    line_data2019 = get_line_plot_data(2019, leagues, cur, conn)
     line_plot(line_data2019, 2019)

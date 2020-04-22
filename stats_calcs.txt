@@ -1,0 +1,50 @@
+Two Proportion Hypothesis Test Results:
+
+  MLB 2017...
+    At an alpha = 0.1 significance level, the data suggests that 40.0%
+    of teams in the MLB seemed to have a home-field advantage in 2017.
+
+  NFL 2017...
+    At an alpha = 0.1 significance level, the data suggests that 21.875%
+    of teams in the NFL seemed to have a home-field advantage in 2017.
+
+  NBA 2017...
+    At an alpha = 0.1 significance level, the data suggests that 66.66666666666666%
+    of teams in the NBA seemed to have a home-field advantage in 2017.
+
+  NHL 2017...
+    At an alpha = 0.1 significance level, the data suggests that 43.333333333333336%
+    of teams in the NHL seemed to have a home-field advantage in 2017.
+
+  MLB 2018...
+    At an alpha = 0.1 significance level, the data suggests that 23.333333333333332%
+    of teams in the MLB seemed to have a home-field advantage in 2018.
+
+  NFL 2018...
+    At an alpha = 0.1 significance level, the data suggests that 28.125%
+    of teams in the NFL seemed to have a home-field advantage in 2018.
+
+  NBA 2018...
+    At an alpha = 0.1 significance level, the data suggests that 66.66666666666666%
+    of teams in the NBA seemed to have a home-field advantage in 2018.
+
+  NHL 2018...
+    At an alpha = 0.1 significance level, the data suggests that 45.16129032258064%
+    of teams in the NHL seemed to have a home-field advantage in 2018.
+
+  MLB 2019...
+    At an alpha = 0.1 significance level, the data suggests that 33.33333333333333%
+    of teams in the MLB seemed to have a home-field advantage in 2019.
+
+  NFL 2019...
+    At an alpha = 0.1 significance level, the data suggests that 15.625%
+    of teams in the NFL seemed to have a home-field advantage in 2019.
+
+  NBA 2019...
+    At an alpha = 0.1 significance level, the data suggests that 70.0%
+    of teams in the NBA seemed to have a home-field advantage in 2019.
+
+  NHL 2019...
+    At an alpha = 0.1 significance level, the data suggests that 16.129032258064516%
+    of teams in the NHL seemed to have a home-field advantage in 2019.
+

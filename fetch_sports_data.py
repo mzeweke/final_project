@@ -11,6 +11,10 @@ import os
 
 
 def update_home_away(location, result, home_rec, away_rec):
+    """Takes a game location and result, along with the team’s home and away records as input.
+    Updates the home and away records with the result of the passed game played at the passed
+    location.  Does not return."""
+
     if location == 'Home':
         if result == 'Win':
             home_rec[0] += 1
@@ -28,6 +32,10 @@ def update_home_away(location, result, home_rec, away_rec):
 
 
 def city_mascot(team):
+    """Takes a team name as input.  Separates the city name from the mascot name (mostly so that
+    my tables can be joined with Ben's). Returns a list of the city name and the mascot, in that 
+    Order."""
+
     crap = str(re.match(r'((San Jose)|(New Jersey)|(Golden State)|(Green Bay)|(San Antonio)|(Oklahoma City)|(New Orleans)|(Tampa Bay)|(New York)|(Kansas City)|(Los Angeles)|(St. Louis)|(New England)|(San Francisco)|(San Diego)|\w+)', team))
     name_start = crap.find("'")
     crap = crap[name_start+1:]
@@ -42,6 +50,10 @@ def city_mascot(team):
 
 
 def fetch_MLB_data(year):
+    '''Takes a year as input.  Fetches data from sportsreference.mlb.teams for the passed year. 
+    Returns a list of id, year, league, home wins, home losses, home ties, away wins, away losses,
+    away ties, city, and mascot for each baseball team that is ready to be stored in database.'''
+
     teams = MLBteams(year)
     team_records = []
     for team in teams:
@@ -68,6 +80,10 @@ def fetch_MLB_data(year):
 
 
 def fetch_NFL_data(year):
+    '''Takes a year as input.  Fetches data from sportsreference.nfl.teams for the passed year. 
+    Returns a list of id, year, league, home wins, home losses, home ties, away wins, away losses, 
+    away ties, city, and mascot for each football team that is ready to be stored in database.'''
+
     teams = NFLteams(year)
     team_records = []
     for team in teams:
@@ -92,6 +108,10 @@ def fetch_NFL_data(year):
 
 
 def fetch_NBA_data(year):
+    '''Takes a year as input.  Fetches data from sportsreference.nba.teams for the passed year. 
+    Returns a list of id, year, league, home wins, home losses, home ties, away wins, away losses, 
+    away ties, city, and mascot for each basketball team that is ready to be stored in database.'''
+
     teams = NBAteams(year)
     team_records = []
     for team in teams:
@@ -116,6 +136,10 @@ def fetch_NBA_data(year):
 
 
 def fetch_NHL_data(year):
+    '''Takes a year as input.  Fetches data from sportsreference.nhl.teams for the passed year. 
+    Returns a list of id, year, league, home wins, home losses, home ties, away wins, away losses, 
+    away ties, city, and mascot for each hockey team that is ready to be stored in database.'''
+
     teams = NHLteams(year)
     team_records = []
     for team in teams:
@@ -140,6 +164,9 @@ def fetch_NHL_data(year):
 
 
 def get_data_year(year):
+    '''Takes a year as input. Runs all of the fetch_data functions for that year and saves the
+    data into one huge masterlist.  Returns this masterlist.'''
+
     master_list = []
     print("Loading MLB data... this may take a while.")
     master_list = master_list + fetch_MLB_data(year)
@@ -164,6 +191,9 @@ def get_data_year(year):
 
 
 def load_to_file(filename, list):
+    '''Takes a filename and a list as input.  Saves the data passed by list into filename, so
+    that it can be accessed later without making more api requests.  Does not return.'''
+
     dir = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(dir, filename), 'w', newline = '') as outfile:
         csv_writer = csv.writer(outfile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
@@ -173,6 +203,8 @@ def load_to_file(filename, list):
 
 
 def read_file_into_list(filename):
+    '''Takes a filename as input.  Reads the data from filename into a list.  Returns this list.'''
+
     dir = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(dir, filename)) as csvfile:
         csv_reader = csv.reader(csvfile)
@@ -184,6 +216,9 @@ def read_file_into_list(filename):
 
 
 def setUpDatabase(db_name):
+    '''Takes a database name as input.  Gets the database set up and ready to go.  Returns a
+    cursor and a connect object.'''
+
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
@@ -191,6 +226,11 @@ def setUpDatabase(db_name):
 
 
 def add_records_to_db(teams_masterlist, start):
+    ''' Takes a list and a starting index as input.  Fetches the next 20 terms from the passed
+    list, beginning at 'start' and loads them into the database. If there are less than 20
+    terms left to load, loads the remaining terms into the database.  If there are no more
+    terms to load, alerts the user.  Returns a new index that you should use next time. '''
+    
     cur.execute('''CREATE TABLE IF NOT EXISTS sports_records (id TEXT PRIMARY KEY, year INTEGER, league TEXT, home_wins INTEGER, home_losses INTEGER, home_ties INTEGER, away_wins INTEGER, away_losses INTEGER, away_ties INTEGER, city TEXT, mascot TEXT)''')
     db_conn = sqlite3.connect("sports_records.db")
     db_cur = db_conn.cursor()
@@ -239,7 +279,7 @@ if __name__ == '__main__':
 
     sports_list = sports_17 + sports_18 + sports_19
 
-    index = add_records_to_db(sports_list, 368)
+    index = add_records_to_db(sports_list, 0)
     if index != -1:
         print("Run again to keep loading data! Use start = " + str(index+1) + " to load more data!")
     
