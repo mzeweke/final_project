@@ -254,9 +254,9 @@ if __name__ == '__main__':
     conn = sqlite3.connect(path+'/'+'sports_records.db')
     cur = conn.cursor()
     
-    #===============================================================================================#
+    #( 1 )===============================================================================================#
     
-    # First I loaded the lists of team information into CSV files, so I'm not making requests for the
+    #( 1 )First I loaded the lists of team information into CSV files, so I'm not making requests for the
     # same information over and over again.  I only did this ONCE.
     '''
     sports_17 = get_data_year(2017)
@@ -269,10 +269,10 @@ if __name__ == '__main__':
     load_to_file("sports_19.csv", sports_19)
     '''
 
-    #===============================================================================================#
-    
-    # Now I will load all sports records data for the past 3 years 20 at a time into tables.
-    
+    #( 2 )===============================================================================================#
+
+    #( 2 )Now I will load all sports records data for the past 3 years 20 at a time into tables.
+    '''
     sports_17 = read_file_into_list("sports_17.csv")
     sports_18 = read_file_into_list("sports_18.csv")
     sports_19 = read_file_into_list("sports_19.csv")
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     index = add_records_to_db(sports_list, 0)
     if index != -1:
         print("Run again to keep loading data! Use start = " + str(index+1) + " to load more data!")
-    
+    '''
     
     # Now everything is loaded in the database, so this file is complete (:
 
