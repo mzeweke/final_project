@@ -116,6 +116,7 @@ def get_line_plot_data(year, leagues, cur, conn, z_star):
         list = calculate_z_score(league_records, z_star)
         teams = []
         home_p_list = []
+        away_p_list = []
         fifty = []
         i = 1
         num = []
@@ -129,9 +130,10 @@ def get_line_plot_data(year, leagues, cur, conn, z_star):
                 abbrev = abbrev + str(76)
             teams.append(abbrev)
             home_p_list.append(rec["home_p"])
+            away_p_list.append(rec['away_p'])
             fifty.append(.5)
             num.append(i); i = i + 1
-        data = [teams, home_p_list, fifty, num]
+        data = [teams, home_p_list, fifty, num, away_p_list]
         print(data[0])
         data_list.append(data)
     return data_list
@@ -143,8 +145,9 @@ def line_plot(data_list, year):
     for data in data_list:
         strnum = "22" + str(fig_num)
         ax = fig.add_subplot(int(strnum))
-        ax.plot(data[0], data[1], marker ="o", linestyle="none")
-        ax.plot(data[0], data[2])
+        ax.plot(data[0], data[1], color="#42B165", marker ="o", linestyle="none")
+        ax.plot(data[0], data[4], color="#CF2460", marker ="o", linestyle="none")
+        ax.plot(data[0], data[2], color = "black")
         ax.set_title("Home Game Wins\n" + leagues[fig_num-1] + " " + str(year))
         ax.set_ylabel("Home Wins (%)")
         ax.set_xlabel(leagues[fig_num-1] + " teams")
@@ -194,5 +197,5 @@ if __name__ == '__main__':
     #box_data2019 = get_box_plot_data(2019, leagues, cur, conn, 1.28)
     #box_plot(box_data2019, 2019)
 
-    #line_data2019 = get_line_plot_data(2019, leagues, cur, conn, 1.28)
-    #line_plot(line_data2019, 2019)
+    line_data2019 = get_line_plot_data(2019, leagues, cur, conn, 1.28)
+    line_plot(line_data2019, 2019)
