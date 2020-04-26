@@ -213,13 +213,9 @@ if __name__ == '__main__':
    
     for i in range(1,20):
         year = 2000+i
-
         get_nfl(year, cur, conn)
-
         get_mlb(year, cur, conn)
-
         get_nba(year, cur, conn)
-
         get_nhl(year, cur, conn)
     
 
