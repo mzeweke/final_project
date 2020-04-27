@@ -231,19 +231,19 @@ def add_records_to_db(teams_masterlist, start):
     terms left to load, loads the remaining terms into the database.  If there are no more
     terms to load, alerts the user.  Returns a new index that you should use next time. '''
     
-    cur.execute('''CREATE TABLE IF NOT EXISTS sports_records (id TEXT PRIMARY KEY, year INTEGER, league TEXT, home_wins INTEGER, home_losses INTEGER, home_ties INTEGER, away_wins INTEGER, away_losses INTEGER, away_ties INTEGER, city TEXT, mascot TEXT)''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS sports_winloss (id TEXT PRIMARY KEY, year INTEGER, league TEXT, home_wins INTEGER, home_losses INTEGER, home_ties INTEGER, away_wins INTEGER, away_losses INTEGER, away_ties INTEGER, city TEXT, mascot TEXT)''')
     db_conn = sqlite3.connect("sports_records.db")
     db_cur = db_conn.cursor()
     for team in teams_masterlist:
         if start+20 <= len(teams_masterlist):
             for i in range(start, start+20):
-                cur.execute("INSERT OR IGNORE INTO sports_records (id, year, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties, city, mascot) VALUES (?,?,?,?,?,?,?,?,?,?,?)",team)
+                cur.execute("INSERT OR IGNORE INTO sports_winloss (id, year, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties, city, mascot) VALUES (?,?,?,?,?,?,?,?,?,?,?)",team)
         elif start == len(teams_masterlist):
             print("No more data to load!")
             return -1
         else:
             for i in range(start, len(teams_masterlist)):
-                cur.execute("INSERT OR IGNORE INTO sports_records (id, year, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties, city, mascot) VALUES (?,?,?,?,?,?,?,?,?,?,?)",team)
+                cur.execute("INSERT OR IGNORE INTO sports_winloss (id, year, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties, city, mascot) VALUES (?,?,?,?,?,?,?,?,?,?,?)",team)
     conn.commit()
     return i
 

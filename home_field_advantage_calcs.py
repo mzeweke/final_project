@@ -13,7 +13,7 @@ def get_leage_records_for_year(year, league, cur, conn):
     Selects relevant data from the database, and from it, calculates percent home and away wins
     and total percent wins.  Stores this data in a list of dictionaries.  Returns this list.'''
 
-    cur.execute('SELECT city, mascot, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties FROM sports_records WHERE year = {}'.format(year))
+    cur.execute('SELECT city, mascot, league, home_wins, home_losses, home_ties, away_wins, away_losses, away_ties FROM sports_winloss WHERE year = {}'.format(year))
     tuples = cur.fetchall()
     dict_list = []
     for tuple in tuples:
@@ -78,8 +78,8 @@ def conclusions(stats_output):
 
 def abbreviate(name):
     '''Takes a name as input.  Calculates an abbreviation for the name.  Returns this abbreviation.'''
-    abbrev = ""
-    for char in name:
+    abbrev = name[:2]
+    for char in name[2:]:
         if char.isupper():
             abbrev = abbrev + char
     if abbrev == "P":
