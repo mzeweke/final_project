@@ -37,6 +37,8 @@ def get_leage_records_for_year(year, league, cur, conn):
             p_hat = (tup[2][0]+tup[3][0])/(n_home+n_away)
             league_records["p_hat"] = p_hat
             dict_list.append(league_records)
+
+            league_records["mascot"] = tup[1]
     return dict_list
 
 def calculate_z_score(record):
@@ -75,16 +77,6 @@ def conclusions(stats_output):
         if entry['HFA'] == True:
             count = count + 1
     return count/len(stats_output)
-
-def abbreviate(name):
-    '''Takes a name as input.  Calculates an abbreviation for the name.  Returns this abbreviation.'''
-    abbrev = name[:2]
-    for char in name[2:]:
-        if char.isupper():
-            abbrev = abbrev + char
-    if abbrev == "P":
-        abbrev = abbrev + str(76)
-    return abbrev
 
 def run_tests_on_all_data(years, leagues, cur, conn, alpha, filename):
     '''Takes a list of years, a list of leagues, a cursor object, a connect object, an alpha value, and
@@ -142,7 +134,7 @@ def get_line_plot_data(year, leagues, cur, conn):
         i = 1
         num = []
         for data in league_records:
-            teams.append(abbreviate(data['name']))
+            teams.append((data['mascot']))
             p_homes.append(data["p_home"])
             p_aways.append(data['p_away'])
             fifty.append(.5)
@@ -167,7 +159,7 @@ def line_plot(data_list, year):
         ax.set_title("Home Game Wins\n" + leagues[fig_num-1] + " " + str(year))
         ax.set_ylabel("Home Wins (%)")
         ax.set_xlabel(leagues[fig_num-1] + " teams")
-        ax.set_xticklabels(data[0], rotation="vertical")
+        ax.set_xticklabels(data[0], rotation=90, size=7)
         fig_num = fig_num + 1
     fig.tight_layout()
     plt.show()
